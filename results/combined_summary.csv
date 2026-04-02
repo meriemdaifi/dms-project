@@ -1,0 +1,53 @@
+Metric,Value,Scenario
+Total Duration (s),120.0,attentive
+Mean Fatigue Score,0.049,attentive
+Max Fatigue Score,0.607,attentive
+Mean Distraction Score,0.004,attentive
+Max Distraction Score,0.012,attentive
+Mean PERCLOS (%),4.9,attentive
+Max PERCLOS (%),100.0,attentive
+% Time Eyes Closed,4.4,attentive
+% Time Attentive,99.8,attentive
+% Time Fatigued,0.2,attentive
+% Time Distracted,0.0,attentive
+% Time Drowsy,0.0,attentive
+Total Alerts Generated,2,attentive
+Total Duration (s),120.0,fatigued
+Mean Fatigue Score,0.223,fatigued
+Max Fatigue Score,0.611,fatigued
+Mean Distraction Score,0.008,fatigued
+Max Distraction Score,0.021,fatigued
+Mean PERCLOS (%),23.0,fatigued
+Max PERCLOS (%),100.0,fatigued
+% Time Eyes Closed,35.5,fatigued
+% Time Attentive,85.5,fatigued
+% Time Fatigued,14.5,fatigued
+% Time Distracted,0.0,fatigued
+% Time Drowsy,0.0,fatigued
+Total Alerts Generated,15,fatigued
+Total Duration (s),120.0,distracted
+Mean Fatigue Score,0.044,distracted
+Max Fatigue Score,0.607,distracted
+Mean Distraction Score,0.122,distracted
+Max Distraction Score,0.344,distracted
+Mean PERCLOS (%),3.9,distracted
+Max PERCLOS (%),100.0,distracted
+% Time Eyes Closed,3.3,distracted
+% Time Attentive,99.8,distracted
+% Time Fatigued,0.2,distracted
+% Time Distracted,0.0,distracted
+% Time Drowsy,0.0,distracted
+Total Alerts Generated,2,distracted
+Total Duration (s),180.0,mixed
+Mean Fatigue Score,0.111,mixed
+Max Fatigue Score,0.607,mixed
+Mean Distraction Score,0.046,mixed
+Max Distraction Score,0.178,mixed
+Mean PERCLOS (%),11.6,mixed
+Max PERCLOS (%),100.0,mixed
+% Time Eyes Closed,11.1,mixed
+% Time Attentive,99.8,mixed
+% Time Fatigued,0.2,mixed
+% Time Distracted,0.0,mixed
+% Time Drowsy,0.0,mixed
+Total Alerts Generated,2,mixed

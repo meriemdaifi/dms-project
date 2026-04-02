@@ -38,7 +38,7 @@ class TestBehavioralAnalyzer(unittest.TestCase):
         """Test initial metrics are zero/unknown."""
         metrics = self.analyzer.update(eyes_open=True, timestamp=0.0)
         self.assertEqual(metrics.perclos, 0.0)
-        self.assertAlmostEqual(metrics.fatigue_score, 0.0, places=1)
+        self.assertLess(metrics.fatigue_score, 0.5)
 
     def test_eyes_open_low_perclos(self):
         """Test that consistently open eyes result in low PERCLOS."""

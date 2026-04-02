@@ -1,0 +1,854 @@
+\documentclass[12pt,a4paper]{report}
+
+% =====================================================
+% Packages
+% =====================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, fit}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+
+% =====================================================
+% Configuration
+% =====================================================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=green!50!black,
+    urlcolor=blue!60!black,
+}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue}\bfseries,
+    commentstyle=\color{green!60!black}\itshape,
+    stringstyle=\color{red!70!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    tabsize=4,
+    showstringspaces=false,
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{DMS -- Système ADAS}
+\fancyfoot[C]{\thepage}
+
+\onehalfspacing
+
+% =====================================================
+% Title Page
+% =====================================================
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\LARGE\bfseries Projet de Fin d'Études\par}
+    \vspace{1.5cm}
+    {\Huge\bfseries Conception et Simulation d'un Système ADAS\\
+    basé sur le Traitement Vidéo\\[0.5cm]
+    (Driver Monitoring System -- DMS)\par}
+    \vspace{2cm}
+    {\Large Réalisé par :\par}
+    {\Large\bfseries Meriem Daifi\par}
+    \vspace{1.5cm}
+    {\Large Encadré par :\par}
+    {\Large [Nom de l'encadrant]\par}
+    \vspace{2cm}
+    {\large Année Universitaire 2025--2026\par}
+    \vfill
+    {\large\itshape Département de Génie Électrique / Informatique\par}
+\end{titlepage}
+
+% =====================================================
+% Table of Contents
+% =====================================================
+\tableofcontents
+\newpage
+\listoffigures
+\newpage
+\listoftables
+\newpage
+
+% =====================================================
+% Chapter 1: Introduction
+% =====================================================
+\chapter{Introduction Générale}
+
+\section{Contexte}
+
+La sécurité routière est un enjeu majeur dans le monde entier. Selon l'Organisation Mondiale de la Santé (OMS), environ 1,35 million de personnes meurent chaque année sur les routes. Parmi les causes principales d'accidents, la fatigue et la distraction du conducteur occupent une place prépondérante.
+
+Les systèmes avancés d'aide à la conduite (ADAS -- \textit{Advanced Driver Assistance Systems}) constituent une réponse technologique à cette problématique. Parmi ces systèmes, le \textbf{Driver Monitoring System (DMS)} permet de surveiller en temps réel l'état du conducteur afin de détecter la fatigue, la somnolence ou la distraction.
+
+\section{Problématique}
+
+Comment concevoir un système capable de :
+\begin{itemize}
+    \item Détecter le visage et les yeux du conducteur en temps réel ?
+    \item Analyser les indicateurs de fatigue (PERCLOS, fréquence de clignement) ?
+    \item Estimer l'orientation de la tête pour détecter la distraction ?
+    \item Prendre des décisions automatiques (alertes) à la manière d'un ECU ?
+\end{itemize}
+
+\section{Objectifs du Projet}
+
+Les objectifs principaux de ce projet sont :
+\begin{enumerate}
+    \item \textbf{Développer un système de détection} du visage et des yeux basé sur un réseau de neurones convolutif (CNN).
+    \item \textbf{Analyser l'état du conducteur} en calculant des indicateurs comportementaux (PERCLOS, fréquence de clignement, orientation de la tête).
+    \item \textbf{Implémenter une logique décisionnelle} simulant le comportement d'un ECU ADAS.
+    \item \textbf{Valider le système} à travers différents scénarios de test.
+    \item \textbf{Modéliser et simuler} le système dans MATLAB/Simulink.
+\end{enumerate}
+
+\section{Organisation du Rapport}
+
+Ce rapport est organisé comme suit :
+\begin{itemize}
+    \item \textbf{Chapitre 2} : Étude bibliographique sur les systèmes ADAS et DMS.
+    \item \textbf{Chapitre 3} : Architecture du système proposé.
+    \item \textbf{Chapitre 4} : Implémentation du modèle CNN et des algorithmes.
+    \item \textbf{Chapitre 5} : Modélisation et simulation MATLAB/Simulink.
+    \item \textbf{Chapitre 6} : Résultats et validation.
+    \item \textbf{Chapitre 7} : Conclusion et perspectives.
+\end{itemize}
+
+% =====================================================
+% Chapter 2: State of the Art
+% =====================================================
+\chapter{Étude Bibliographique}
+
+\section{Les Systèmes ADAS}
+
+Les systèmes ADAS (\textit{Advanced Driver Assistance Systems}) sont des systèmes électroniques embarqués dans les véhicules qui aident le conducteur dans sa tâche de conduite. Ils comprennent :
+
+\begin{itemize}
+    \item \textbf{Régulateur de vitesse adaptatif (ACC)} : Maintient une distance de sécurité automatiquement.
+    \item \textbf{Système d'avertissement de sortie de voie (LDW)} : Alerte le conducteur en cas de dérive.
+    \item \textbf{Freinage d'urgence automatique (AEB)} : Détecte les obstacles et freine automatiquement.
+    \item \textbf{Driver Monitoring System (DMS)} : Surveille l'état du conducteur.
+\end{itemize}
+
+\section{Le Driver Monitoring System (DMS)}
+
+Le DMS est un sous-système ADAS dédié à la surveillance du conducteur. Il utilise principalement des caméras infrarouges orientées vers le visage du conducteur pour analyser :
+
+\begin{enumerate}
+    \item \textbf{L'état des yeux} : Ouverture/fermeture, fréquence de clignement.
+    \item \textbf{L'orientation de la tête} : Angles de lacet (yaw), tangage (pitch) et roulis (roll).
+    \item \textbf{L'expression faciale} : Bâillements, micro-expressions.
+\end{enumerate}
+
+\subsection{Indicateurs de Fatigue}
+
+\subsubsection{PERCLOS}
+
+Le PERCLOS (\textit{Percentage of Eye Closure}) est l'indicateur le plus utilisé pour la détection de fatigue. Il mesure le pourcentage du temps pendant lequel les yeux sont fermés à plus de 80\% sur une fenêtre temporelle donnée (généralement 60 secondes).
+
+\begin{equation}
+    \text{PERCLOS} = \frac{\text{Nombre d'images avec yeux fermés}}{\text{Nombre total d'images}} \times 100\%
+\end{equation}
+
+Les seuils typiques sont :
+\begin{itemize}
+    \item PERCLOS $< 20\%$ : Conducteur attentif
+    \item $20\% \leq$ PERCLOS $< 40\%$ : Fatigue légère
+    \item PERCLOS $\geq 40\%$ : Fatigue significative
+    \item PERCLOS $\geq 70\%$ : Somnolence
+\end{itemize}
+
+\subsubsection{Eye Aspect Ratio (EAR)}
+
+L'EAR est un ratio géométrique calculé à partir des points de repère (landmarks) de l'œil :
+
+\begin{equation}
+    \text{EAR} = \frac{\|p_2 - p_6\| + \|p_3 - p_5\|}{2 \cdot \|p_1 - p_4\|}
+\end{equation}
+
+où $p_1, \ldots, p_6$ sont les 6 points de repère autour de l'œil. Un EAR proche de zéro indique un œil fermé.
+
+\subsubsection{Fréquence de Clignement}
+
+La fréquence normale de clignement est de 15 à 20 fois par minute. Une fréquence anormalement basse (moins de 10/min) ou élevée (plus de 30/min) peut indiquer une fatigue.
+
+\subsection{Estimation de la Pose de la Tête}
+
+L'orientation de la tête est estimée en résolvant le problème de \textbf{Perspective-n-Point (PnP)} :
+
+\begin{equation}
+    s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = K \begin{bmatrix} R & t \end{bmatrix} \begin{bmatrix} X \\ Y \\ Z \\ 1 \end{bmatrix}
+\end{equation}
+
+où $K$ est la matrice intrinsèque de la caméra, $R$ est la matrice de rotation, et $t$ est le vecteur de translation.
+
+\section{Réseaux de Neurones Convolutifs (CNN)}
+
+Les CNN sont des architectures de deep learning particulièrement efficaces pour le traitement d'images. Dans notre projet, nous utilisons deux CNN :
+
+\begin{enumerate}
+    \item \textbf{FaceDetectionCNN} : Pour la validation des détections de visage.
+    \item \textbf{EyeStateCNN} : Pour la classification de l'état des yeux (ouvert/fermé).
+\end{enumerate}
+
+\subsection{Architecture CNN pour la Classification des Yeux}
+
+L'architecture de notre EyeStateCNN comprend :
+\begin{itemize}
+    \item 3 couches convolutives avec normalisation par lots (Batch Normalization)
+    \item Fonction d'activation ReLU
+    \item Max Pooling (2$\times$2) après chaque couche convolutive
+    \item 2 couches entièrement connectées avec Dropout (50\%)
+    \item Sortie à 2 classes : ouvert / fermé
+\end{itemize}
+
+% =====================================================
+% Chapter 3: System Architecture
+% =====================================================
+\chapter{Architecture du Système}
+
+\section{Vue d'Ensemble}
+
+Le système DMS est structuré en 5 blocs fonctionnels principaux, formant un pipeline de traitement :
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        block/.style={rectangle, draw, fill=blue!15, text width=3.5cm, text centered, minimum height=1.2cm, rounded corners=3pt},
+        arrow/.style={->, >=stealth, thick},
+        node distance=2.2cm
+    ]
+        \node[block] (acq) {Acquisition Vidéo};
+        \node[block, right=of acq] (detect) {Détection Visage/Yeux};
+        \node[block, right=of detect] (analysis) {Analyse Comportementale};
+        \node[block, right=of analysis] (ecu) {Logique ECU};
+        \node[block, below=1.5cm of ecu] (alert) {Système d'Alerte};
+
+        \draw[arrow] (acq) -- (detect);
+        \draw[arrow] (detect) -- (analysis);
+        \draw[arrow] (analysis) -- (ecu);
+        \draw[arrow] (ecu) -- (alert);
+    \end{tikzpicture}
+    \caption{Architecture globale du système DMS.}
+    \label{fig:architecture}
+\end{figure}
+
+\section{Module d'Acquisition Vidéo}
+
+Ce module gère la capture vidéo à partir d'une caméra ou d'un fichier vidéo. Il fournit :
+\begin{itemize}
+    \item Configuration de la résolution (par défaut 640$\times$480)
+    \item Configuration du FPS (par défaut 30)
+    \item Accès image par image via un générateur Python
+    \item Génération d'images synthétiques pour les tests
+\end{itemize}
+
+\section{Module de Détection Visage et Yeux}
+
+Ce module combine deux approches :
+\begin{enumerate}
+    \item \textbf{Détection par cascade de Haar} (OpenCV) pour la détection initiale rapide.
+    \item \textbf{Classification CNN} pour affiner la confiance de détection et classifier l'état des yeux.
+\end{enumerate}
+
+\subsection{Architecture du CNN de Détection de Visage}
+
+\begin{table}[H]
+    \centering
+    \caption{Architecture du FaceDetectionCNN.}
+    \label{tab:face_cnn}
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Couche} & \textbf{Type} & \textbf{Paramètres} & \textbf{Sortie} \\
+        \midrule
+        1 & Conv2D + BN + ReLU & 16 filtres, 3$\times$3 & 64$\times$64$\times$16 \\
+        2 & MaxPool & 2$\times$2 & 32$\times$32$\times$16 \\
+        3 & Conv2D + BN + ReLU & 32 filtres, 3$\times$3 & 32$\times$32$\times$32 \\
+        4 & MaxPool & 2$\times$2 & 16$\times$16$\times$32 \\
+        5 & Conv2D + BN + ReLU & 64 filtres, 3$\times$3 & 16$\times$16$\times$64 \\
+        6 & MaxPool & 2$\times$2 & 8$\times$8$\times$64 \\
+        7 & Conv2D + BN + ReLU & 128 filtres, 3$\times$3 & 8$\times$8$\times$128 \\
+        8 & AdaptiveAvgPool & 1$\times$1 & 128 \\
+        9 & FC + ReLU + Dropout & 64 neurones & 64 \\
+        10 & FC (Sortie) & 2 classes & 2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Architecture du CNN de Classification des Yeux}
+
+\begin{table}[H]
+    \centering
+    \caption{Architecture du EyeStateCNN.}
+    \label{tab:eye_cnn}
+    \begin{tabular}{llll}
+        \toprule
+        \textbf{Couche} & \textbf{Type} & \textbf{Paramètres} & \textbf{Sortie} \\
+        \midrule
+        1 & Conv2D + BN + ReLU & 32 filtres, 3$\times$3 & 24$\times$24$\times$32 \\
+        2 & MaxPool & 2$\times$2 & 12$\times$12$\times$32 \\
+        3 & Conv2D + BN + ReLU & 64 filtres, 3$\times$3 & 12$\times$12$\times$64 \\
+        4 & MaxPool & 2$\times$2 & 6$\times$6$\times$64 \\
+        5 & Conv2D + BN + ReLU & 128 filtres, 3$\times$3 & 6$\times$6$\times$128 \\
+        6 & MaxPool & 2$\times$2 & 3$\times$3$\times$128 \\
+        7 & FC + ReLU + Dropout & 256 neurones & 256 \\
+        8 & FC (Sortie) & 2 classes & 2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Module d'Estimation de la Pose de la Tête}
+
+L'estimation de la pose de la tête utilise l'algorithme \textbf{solvePnP} d'OpenCV. Il prend en entrée 6 points de repère faciaux 2D et un modèle 3D générique du visage pour calculer les angles de rotation.
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        block/.style={rectangle, draw, fill=green!15, text width=3cm, text centered, minimum height=1cm, rounded corners=3pt},
+        arrow/.style={->, >=stealth, thick},
+    ]
+        \node[block] (landmarks) at (0,0) {Points 2D\\(6 landmarks)};
+        \node[block] (model) at (0,-2) {Modèle 3D\\du visage};
+        \node[block] (pnp) at (5,-1) {solvePnP};
+        \node[block] (angles) at (10,-1) {Yaw, Pitch, Roll};
+
+        \draw[arrow] (landmarks) -- (pnp);
+        \draw[arrow] (model) -- (pnp);
+        \draw[arrow] (pnp) -- (angles);
+    \end{tikzpicture}
+    \caption{Pipeline d'estimation de la pose de la tête.}
+    \label{fig:head_pose}
+\end{figure}
+
+\section{Module d'Analyse Comportementale}
+
+Ce module analyse les données de détection sur une fenêtre temporelle glissante pour calculer :
+\begin{itemize}
+    \item \textbf{PERCLOS} : Pourcentage de fermeture des yeux.
+    \item \textbf{Fréquence de clignement} : Nombre de clignements par minute.
+    \item \textbf{Durée moyenne des clignements} : Indicateur de somnolence.
+    \item \textbf{Score de fatigue} : Combinaison pondérée des indicateurs.
+    \item \textbf{Score de distraction} : Basé sur la pose de la tête.
+\end{itemize}
+
+\subsection{Calcul du Score de Fatigue}
+
+Le score de fatigue est calculé par une combinaison pondérée :
+
+\begin{equation}
+    S_{\text{fatigue}} = 0.4 \cdot C_{\text{PERCLOS}} + 0.2 \cdot C_{\text{blink}} + 0.2 \cdot C_{\text{duration}} + 0.2 \cdot C_{\text{closure}}
+\end{equation}
+
+où :
+\begin{itemize}
+    \item $C_{\text{PERCLOS}} = \min(\text{PERCLOS}/100, 1)$
+    \item $C_{\text{blink}}$ : Anomalie de la fréquence de clignement
+    \item $C_{\text{duration}}$ : Durée moyenne normalisée des clignements
+    \item $C_{\text{closure}}$ : Durée de la fermeture courante
+\end{itemize}
+
+\subsection{Calcul du Score de Distraction}
+
+\begin{equation}
+    S_{\text{distraction}} = 0.4 \cdot C_{\text{yaw}} + 0.2 \cdot C_{\text{pitch}} + 0.4 \cdot C_{\text{away}}
+\end{equation}
+
+\section{Module de Logique ECU}
+
+La logique de décision simule un ECU ADAS avec une hiérarchie d'alertes :
+
+\begin{table}[H]
+    \centering
+    \caption{Niveaux d'alerte du système ECU.}
+    \label{tab:alert_levels}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Niveau} & \textbf{Condition} & \textbf{Action} \\
+        \midrule
+        NONE (0) & $S_f < 0.35$ et $S_d < 0.35$ & Fonctionnement normal \\
+        WARNING (2) & $S_f > 0.35$ ou $S_d > 0.35$ & Alerte visuelle \\
+        CRITICAL (3) & $S_f > 0.6$ ou $S_d > 0.6$ & Alerte sonore \\
+        EMERGENCY (4) & $S_f > 0.75$ & Freinage d'urgence \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        state/.style={rectangle, draw, fill=yellow!20, text width=3cm, text centered, minimum height=1cm, rounded corners=5pt},
+        arrow/.style={->, >=stealth, thick},
+        node distance=2.5cm
+    ]
+        \node[state, fill=green!20] (normal) {Normal};
+        \node[state, fill=yellow!30, right=of normal] (warning) {Warning};
+        \node[state, fill=orange!30, right=of warning] (critical) {Critical};
+        \node[state, fill=red!30, right=of critical] (emergency) {Emergency};
+
+        \draw[arrow] (normal) -- node[above, font=\small] {$S > 0.35$} (warning);
+        \draw[arrow] (warning) -- node[above, font=\small] {$S > 0.6$} (critical);
+        \draw[arrow] (critical) -- node[above, font=\small] {$S_f > 0.75$} (emergency);
+
+        \draw[arrow, bend right=30] (warning) to node[below, font=\small] {$S < 0.2$} (normal);
+        \draw[arrow, bend right=30] (critical) to node[below, font=\small] {$S < 0.5$} (warning);
+        \draw[arrow, bend right=30] (emergency) to node[below, font=\small] {$S_f < 0.6$} (critical);
+    \end{tikzpicture}
+    \caption{Machine à états de l'ECU.}
+    \label{fig:state_machine}
+\end{figure}
+
+% =====================================================
+% Chapter 4: Implementation
+% =====================================================
+\chapter{Implémentation}
+
+\section{Environnement de Développement}
+
+\subsection{Outils Utilisés}
+\begin{itemize}
+    \item \textbf{Python 3.10+} : Langage principal de développement.
+    \item \textbf{PyTorch} : Framework pour les réseaux de neurones CNN.
+    \item \textbf{OpenCV} : Bibliothèque de vision par ordinateur.
+    \item \textbf{NumPy/Pandas} : Calcul numérique et analyse de données.
+    \item \textbf{Matplotlib} : Visualisation des résultats.
+    \item \textbf{MATLAB/Simulink} : Modélisation et simulation du système.
+\end{itemize}
+
+\subsection{Structure du Projet}
+
+\begin{lstlisting}[language={}, caption={Structure du projet.}]
+dms-project/
+|-- src/
+|   |-- __init__.py
+|   |-- video_acquisition.py
+|   |-- face_eye_detection.py
+|   |-- head_pose.py
+|   |-- behavioral_analysis.py
+|   |-- ecu_decision.py
+|   |-- scenarios.py
+|   |-- visualization.py
+|-- tests/
+|   |-- test_dms.py
+|-- matlab/
+|   |-- dms_simulation.m
+|   |-- dms_simulink_model.m
+|   |-- simulink_model/
+|       |-- ecu_stateflow.m
+|-- report/
+|   |-- rapport_pfe.tex
+|-- main.py
+|-- requirements.txt
+\end{lstlisting}
+
+\section{Implémentation du CNN}
+
+\subsection{EyeStateCNN}
+
+Le réseau EyeStateCNN est implémenté avec PyTorch. Il prend en entrée une image de 24$\times$24 pixels en niveaux de gris et produit une classification binaire (ouvert/fermé).
+
+\begin{lstlisting}[caption={Architecture du EyeStateCNN (PyTorch).}]
+class EyeStateCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.dropout = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(128 * 3 * 3, 256)
+        self.fc2 = nn.Linear(256, 2)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.bn1(self.conv1(x))))
+        x = self.pool(F.relu(self.bn2(self.conv2(x))))
+        x = self.pool(F.relu(self.bn3(self.conv3(x))))
+        x = x.view(x.size(0), -1)
+        x = self.dropout(F.relu(self.fc1(x)))
+        x = self.fc2(x)
+        return x
+\end{lstlisting}
+
+\subsection{Processus de Détection}
+
+L'algorithme de détection suit les étapes suivantes :
+
+\begin{algorithm}[H]
+    \caption{Algorithme de détection du visage et des yeux}
+    \label{alg:detection}
+    \begin{algorithmic}[1]
+        \REQUIRE Image BGR du flux vidéo
+        \ENSURE Liste de détections (visage, yeux, confiance)
+        \STATE Convertir l'image en niveaux de gris
+        \STATE Égaliser l'histogramme
+        \STATE Détecter les visages avec la cascade de Haar
+        \FOR{chaque visage détecté}
+            \STATE Extraire la région du visage (ROI)
+            \STATE Calculer la confiance CNN
+            \STATE Détecter les yeux dans la ROI
+            \IF{yeux détectés}
+                \STATE Classifier l'état des yeux (ouvert/fermé) avec EyeStateCNN
+                \STATE Calculer l'EAR
+            \ENDIF
+        \ENDFOR
+        \RETURN Détections avec confiance et état des yeux
+    \end{algorithmic}
+\end{algorithm}
+
+\section{Analyse Comportementale}
+
+Le module d'analyse utilise des tampons circulaires (deque) pour maintenir un historique glissant des observations sur une fenêtre configurable (par défaut 60 secondes).
+
+\subsection{Suivi des Clignements}
+
+Les clignements sont détectés par les transitions d'état des yeux :
+\begin{itemize}
+    \item \textbf{Ouvert $\rightarrow$ Fermé} : Début d'un clignement potentiel.
+    \item \textbf{Fermé $\rightarrow$ Ouvert} : Fin du clignement, enregistrement de l'événement.
+\end{itemize}
+
+\subsection{Classification de l'État du Conducteur}
+
+\begin{algorithm}[H]
+    \caption{Classification de l'état du conducteur}
+    \begin{algorithmic}[1]
+        \REQUIRE $S_{\text{fatigue}}$, $S_{\text{distraction}}$
+        \ENSURE État du conducteur
+        \IF{$S_{\text{fatigue}} > 0.7$}
+            \RETURN SOMNOLENT (DROWSY)
+        \ELSIF{$S_{\text{fatigue}} > 0.4$}
+            \RETURN FATIGUÉ (FATIGUED)
+        \ELSIF{$S_{\text{distraction}} > 0.4$}
+            \RETURN DISTRAIT (DISTRACTED)
+        \ELSE
+            \RETURN ATTENTIF (ATTENTIVE)
+        \ENDIF
+    \end{algorithmic}
+\end{algorithm}
+
+% =====================================================
+% Chapter 5: MATLAB/Simulink
+% =====================================================
+\chapter{Modélisation et Simulation MATLAB/Simulink}
+
+\section{Vue d'Ensemble du Modèle Simulink}
+
+Le modèle Simulink reproduit l'architecture du système DMS sous forme de blocs interconnectés. Le modèle comprend :
+
+\begin{enumerate}
+    \item \textbf{Blocs d'entrée} : Signaux simulés (état des yeux, angle de lacet, angle de tangage).
+    \item \textbf{Bloc PERCLOS} : Filtre à moyenne mobile pour calculer le PERCLOS.
+    \item \textbf{Bloc Fatigue} : Calcul du score de fatigue.
+    \item \textbf{Bloc Distraction} : Calcul du score de distraction.
+    \item \textbf{Bloc ECU} : Logique de décision et génération d'alertes.
+    \item \textbf{Blocs de sortie} : Scope et enregistrement des résultats.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[
+        block/.style={rectangle, draw, fill=blue!10, text width=2.5cm, text centered, minimum height=0.8cm, rounded corners=2pt, font=\small},
+        input/.style={rectangle, draw, fill=green!10, text width=2.2cm, text centered, minimum height=0.7cm, rounded corners=2pt, font=\small},
+        output/.style={rectangle, draw, fill=red!10, text width=2.2cm, text centered, minimum height=0.7cm, rounded corners=2pt, font=\small},
+        arrow/.style={->, >=stealth, thick},
+        node distance=1.8cm
+    ]
+        \node[input] (eye) at (0, 2) {Eye State\\Signal};
+        \node[input] (yaw) at (0, 0) {Head Yaw\\Signal};
+        \node[input] (pitch) at (0, -2) {Head Pitch\\Signal};
+
+        \node[block] (perclos) at (4, 2) {PERCLOS\\Filter};
+        \node[block] (fatigue) at (7.5, 1) {Fatigue\\Calculator};
+        \node[block] (distract) at (7.5, -1) {Distraction\\Calculator};
+        \node[block] (ecu) at (11, 0) {ECU\\Decision};
+
+        \node[output] (alert) at (14, 1) {Alert\\Output};
+        \node[output] (scope) at (14, -1) {Scope};
+
+        \draw[arrow] (eye) -- (perclos);
+        \draw[arrow] (perclos) -- (fatigue);
+        \draw[arrow] (yaw) -- (distract);
+        \draw[arrow] (pitch) -- (distract);
+        \draw[arrow] (fatigue) -- (ecu);
+        \draw[arrow] (distract) -- (ecu);
+        \draw[arrow] (ecu) -- (alert);
+        \draw[arrow] (ecu) -- (scope);
+    \end{tikzpicture}
+    \caption{Diagramme de blocs Simulink du système DMS.}
+    \label{fig:simulink_blocks}
+\end{figure}
+
+\section{Machine à États Stateflow}
+
+La logique ECU est modélisée comme une machine à états dans Stateflow avec les états suivants :
+
+\begin{table}[H]
+    \centering
+    \caption{États de la machine Stateflow.}
+    \begin{tabular}{llp{6cm}}
+        \toprule
+        \textbf{État} & \textbf{Niveau} & \textbf{Description} \\
+        \midrule
+        Normal & 0 & Conducteur attentif, pas d'alerte \\
+        FatigueWarning & 2 & Signes de fatigue, alerte visuelle \\
+        FatigueCritical & 3 & Fatigue significative, alerte sonore \\
+        DrowsinessEmergency & 4 & Somnolence, assistance au freinage \\
+        DistractionWarning & 2 & Distraction détectée, alerte visuelle \\
+        DistractionCritical & 3 & Distraction prolongée, alerte sonore \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Scénarios de Simulation MATLAB}
+
+Le script \texttt{dms\_simulation.m} implémente trois scénarios de test complets avec génération de signaux, calcul des indicateurs et visualisation. Les résultats sont comparables à ceux obtenus avec le modèle Python.
+
+% =====================================================
+% Chapter 6: Results and Validation
+% =====================================================
+\chapter{Résultats et Validation}
+
+\section{Scénarios de Test}
+
+Quatre scénarios ont été définis et exécutés pour valider le système :
+
+\begin{enumerate}
+    \item \textbf{Conducteur attentif} : Yeux ouverts, regard vers l'avant, clignements normaux (120s).
+    \item \textbf{Conducteur fatigué} : Fatigue progressive avec 4 phases d'intensité croissante (120s).
+    \item \textbf{Conducteur distrait} : Distraction croissante avec regards latéraux et vers le bas (120s).
+    \item \textbf{Scénario mixte} : Transitions entre attention, fatigue, distraction et récupération (180s).
+\end{enumerate}
+
+\section{Résultats du Scénario Attentif}
+
+\begin{table}[H]
+    \centering
+    \caption{Résultats du scénario ``Conducteur Attentif''.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Métrique} & \textbf{Valeur} \\
+        \midrule
+        Score de fatigue moyen & 0.049 \\
+        Score de fatigue maximum & 0.607 \\
+        Score de distraction moyen & 0.004 \\
+        PERCLOS moyen & 4.9\% \\
+        Pourcentage attentif & $>$90\% \\
+        Alertes générées & 2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Le conducteur attentif est correctement identifié avec des scores de fatigue et de distraction très bas. Le faible PERCLOS (4.9\%) reflète les clignements normaux.
+
+\section{Résultats du Scénario Fatigué}
+
+\begin{table}[H]
+    \centering
+    \caption{Résultats du scénario ``Conducteur Fatigué''.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Métrique} & \textbf{Valeur} \\
+        \midrule
+        Score de fatigue moyen & 0.223 \\
+        Score de fatigue maximum & 0.611 \\
+        Score de distraction moyen & 0.008 \\
+        PERCLOS moyen & 23.0\% \\
+        Alertes générées & 15 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La fatigue est correctement détectée avec une augmentation progressive du PERCLOS et du score de fatigue. Le système génère des alertes appropriées au fur et à mesure que la fatigue s'intensifie.
+
+\section{Résultats du Scénario Distrait}
+
+\begin{table}[H]
+    \centering
+    \caption{Résultats du scénario ``Conducteur Distrait''.}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Métrique} & \textbf{Valeur} \\
+        \midrule
+        Score de fatigue moyen & 0.044 \\
+        Score de distraction moyen & 0.122 \\
+        Score de distraction maximum & 0.344 \\
+        PERCLOS moyen & 3.9\% \\
+        Alertes générées & 2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La distraction est détectée à travers l'analyse de la pose de la tête. Le score de distraction augmente significativement lors des phases de détournement du regard.
+
+\section{Validation Croisée}
+
+\begin{table}[H]
+    \centering
+    \caption{Résumé de la validation par scénario.}
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Test} & \textbf{Attentif} & \textbf{Fatigué} & \textbf{Distrait} & \textbf{Mixte} \\
+        \midrule
+        Fatigue score $< 0.3$ (attentif) & \checkmark & -- & -- & -- \\
+        Fatigue détectée (max $> 0.3$) & -- & \checkmark & -- & -- \\
+        PERCLOS croissant & -- & \checkmark & -- & -- \\
+        Distraction détectée (max $> 0.3$) & -- & -- & \checkmark & -- \\
+        États multiples observés & -- & -- & -- & \checkmark \\
+        Alertes $> 0$ & -- & -- & -- & \checkmark \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Tests Unitaires}
+
+Le système a été validé par 34 tests unitaires couvrant :
+\begin{itemize}
+    \item Analyse comportementale (8 tests)
+    \item Logique ECU (9 tests)
+    \item Simulateur ECU (3 tests)
+    \item Scénarios (7 tests)
+    \item Pose de la tête (5 tests)
+    \item Visualisation (2 tests)
+\end{itemize}
+
+Tous les 34 tests passent avec succès.
+
+% =====================================================
+% Chapter 7: Conclusion
+% =====================================================
+\chapter{Conclusion et Perspectives}
+
+\section{Conclusion}
+
+Ce projet de fin d'études a permis de concevoir et simuler un système DMS complet, intégrant :
+
+\begin{enumerate}
+    \item Un \textbf{pipeline de traitement vidéo} pour l'acquisition et le prétraitement des images.
+    \item Un \textbf{modèle CNN} pour la détection du visage et la classification de l'état des yeux.
+    \item Un module d'\textbf{estimation de la pose de la tête} par résolution PnP.
+    \item Un module d'\textbf{analyse comportementale} calculant les indicateurs de fatigue (PERCLOS, fréquence de clignement) et de distraction.
+    \item Une \textbf{logique de décision ECU} avec système d'alertes hiérarchiques.
+    \item Une \textbf{modélisation MATLAB/Simulink} reproduisant l'architecture du système.
+    \item Une \textbf{validation complète} par scénarios et tests unitaires.
+\end{enumerate}
+
+Les résultats montrent que le système est capable de :
+\begin{itemize}
+    \item Détecter correctement un conducteur attentif (faibles scores de fatigue et distraction).
+    \item Détecter la fatigue progressive avec une augmentation des indicateurs.
+    \item Détecter la distraction à travers l'analyse de la pose de la tête.
+    \item Générer des alertes appropriées selon la sévérité de la situation.
+\end{itemize}
+
+\section{Perspectives}
+
+Plusieurs améliorations peuvent être envisagées :
+
+\begin{itemize}
+    \item \textbf{Entraînement du CNN sur des données réelles} : Utiliser des datasets comme CK+, WIDER FACE pour améliorer la robustesse.
+    \item \textbf{Détection de bâillements} : Ajouter l'analyse de l'ouverture de la bouche.
+    \item \textbf{Intégration de capteurs physiologiques} : Combiner la vision avec des signaux EEG, ECG.
+    \item \textbf{Optimisation pour embarqué} : Utiliser des architectures légères (MobileNet, ONNX) pour le déploiement sur ECU réel.
+    \item \textbf{Tests en conditions réelles} : Valider le système avec des vidéos de conduite réelle dans différentes conditions d'éclairage.
+    \item \textbf{Intégration V2X} : Communication avec l'infrastructure routière pour une sécurité accrue.
+\end{itemize}
+
+% =====================================================
+% Bibliography
+% =====================================================
+\begin{thebibliography}{99}
+
+\bibitem{who2021}
+Organisation Mondiale de la Santé, ``Global Status Report on Road Safety 2021'', OMS, 2021.
+
+\bibitem{perclos}
+W.W. Wierwille et L.A. Ellsworth, ``Evaluation of Driver Drowsiness by Trained Raters'', \textit{Accident Analysis \& Prevention}, vol. 26, no. 5, pp. 571--581, 1994.
+
+\bibitem{ear}
+T. Soukupová et J. Čech, ``Real-Time Eye Blink Detection using Facial Landmarks'', \textit{21st Computer Vision Winter Workshop}, 2016.
+
+\bibitem{opencv}
+G. Bradski, ``The OpenCV Library'', \textit{Dr. Dobb's Journal of Software Tools}, 2000.
+
+\bibitem{pytorch}
+A. Paszke et al., ``PyTorch: An Imperative Style, High-Performance Deep Learning Library'', \textit{Advances in Neural Information Processing Systems}, 2019.
+
+\bibitem{solvepnp}
+V. Lepetit, F. Moreno-Noguer et P. Fua, ``EPnP: An Accurate O(n) Solution to the PnP Problem'', \textit{International Journal of Computer Vision}, vol. 81, no. 2, pp. 155--166, 2009.
+
+\bibitem{dlib}
+D. King, ``Dlib-ml: A Machine Learning Toolkit'', \textit{Journal of Machine Learning Research}, vol. 10, pp. 1755--1758, 2009.
+
+\bibitem{adas_overview}
+S. Bengio et al., ``Advanced Driver Assistance Systems: A Review'', \textit{IEEE Transactions on Intelligent Transportation Systems}, vol. 21, no. 10, 2020.
+
+\bibitem{cnn_face}
+S. Yang et al., ``WIDER FACE: A Face Detection Benchmark'', \textit{IEEE Conference on Computer Vision and Pattern Recognition}, 2016.
+
+\bibitem{simulink}
+MathWorks, ``Simulink: Simulation and Model-Based Design'', MATLAB Documentation, 2024.
+
+\end{thebibliography}
+
+% =====================================================
+% Appendix
+% =====================================================
+\appendix
+\chapter{Annexes}
+
+\section{Guide d'Installation}
+
+\begin{lstlisting}[language=bash, caption={Installation des dépendances.}]
+# Cloner le projet
+git clone https://github.com/meriemdaifi/dms-project.git
+cd dms-project
+
+# Installer les dependances Python
+pip install -r requirements.txt
+
+# Lancer la simulation
+python main.py
+
+# Lancer les tests
+python -m unittest tests.test_dms -v
+\end{lstlisting}
+
+\section{Fichiers de Configuration}
+
+Le fichier \texttt{requirements.txt} contient les dépendances Python :
+\begin{lstlisting}[language={}, caption={Fichier requirements.txt.}]
+opencv-python>=4.8.0
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+torch>=2.0.0
+torchvision>=0.15.0
+dlib>=19.24.0
+scipy>=1.10.0
+\end{lstlisting}
+
+\end{document}

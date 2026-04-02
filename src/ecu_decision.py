@@ -195,9 +195,10 @@ class ECUDecisionEngine:
         metrics: Optional[BehavioralMetrics] = None,
     ) -> None:
         """Generate an alert if not in cooldown."""
-        last_time = self._last_alert_times.get(alert_type, 0)
-        if timestamp - last_time < self.ALERT_COOLDOWN:
-            return
+        if alert_type in self._last_alert_times:
+            last_time = self._last_alert_times[alert_type]
+            if timestamp - last_time < self.ALERT_COOLDOWN:
+                return
 
         alert = Alert(
             alert_type=alert_type,
